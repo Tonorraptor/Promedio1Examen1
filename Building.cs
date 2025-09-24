@@ -18,12 +18,12 @@ namespace Promedio1Examen1
             this.price = price;
             this.health = health;
         }
-        protected virtual void TakeDamage(int damage)
+        public virtual void TakeDamage(int damage)
         {
             health -= damage;
             if (health < 0) health = 0;
         }
-        protected virtual string GetInfo()
+        public virtual string GetInfo()
         {
             return $"{name} Cuesta: {price} Salud: {health}";
         }

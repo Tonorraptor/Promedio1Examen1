@@ -22,14 +22,18 @@ namespace Promedio1Examen1
             this.speed = speed;
             this.price = price;
         }
-        protected virtual void TakeDamage(int damage)
+        public virtual void TakeDamage(int damage)
         {
             health -= damage;
             if (health < 0) health = 0;
         }
-        protected virtual string GetInfo()
+        public virtual string GetInfo()
         {
             return $"{name} Cuesta: {price} Salud: {health} Daño: {dange} Velocidad: {speed}";
+        }
+        public virtual bool IsAlive()
+        {
+            return health > 0;
         }
     }
 }
