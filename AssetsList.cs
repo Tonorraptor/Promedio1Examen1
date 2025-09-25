@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Promedio1Examen1
 {
-    internal class Lists
+    internal class AssetsList
     {
         private List<Building> structures = new List<Building>();
         private List<Unit> units = new List<Unit>();
