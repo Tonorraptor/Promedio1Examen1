@@ -27,5 +27,13 @@ namespace Promedio1Examen1
         {
             return $"{name} Cuesta: {price} Salud: {health}";
         }
+        public virtual string GetName()
+        {
+            return $"{name}";
+        }
+        public virtual int GetPriece()
+        {
+            return price;
+        }
     }
 }
