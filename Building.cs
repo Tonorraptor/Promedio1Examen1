@@ -31,6 +31,10 @@ namespace Promedio1Examen1
         {
             return $"{name}";
         }
+        public virtual int GetHealth()
+        {
+            return health;
+        }
         public virtual int GetPriece()
         {
             return price;

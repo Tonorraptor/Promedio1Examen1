@@ -11,10 +11,11 @@ namespace Promedio1Examen1
         private string name;                 
         private bool isPlayerBase;            
         private bool isEnemyBase;
-        private List<Unit> units;             
-        private List<Building> structures;
+        public List<Unit> units;             
+        public List<Building> structures;
 
         private bool isConquered;
+        private bool isConqueredByEnemy;
 
         public Node(string name, bool isPlayerBase = false, bool isEnemyBase = false)
         {
@@ -64,6 +65,7 @@ namespace Promedio1Examen1
         public void Conquer()
         {
             isConquered = true;
+            isConqueredByEnemy = false;
         }
         public bool IsConquered()
         {
@@ -73,6 +75,10 @@ namespace Promedio1Examen1
         {
             return structures.OfType<MaintenanceStructure>().ToList();
         }
+        public List<Unit> GetUnits()
+        {
+            return units;
+        }
         public string GetName()
         {
             return $"{name}";
@@ -80,6 +86,19 @@ namespace Promedio1Examen1
         public List<Building> GetStructures()
         {
             return structures;
+        }
+        public void RemoveStructure(Building structure)
+        {
+            structures.Remove(structure);
+        }
+        public void ConquerByEnemy()
+        {
+            isConqueredByEnemy = true;
+            isConquered = false;
+        }
+        public bool IsConqueredByEnamy()
+        {
+            return isConqueredByEnemy;
         }
     }
 }

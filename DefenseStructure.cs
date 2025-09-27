@@ -14,9 +14,8 @@ namespace Promedio1Examen1
         {
             this.dange = dange;
         }
-        public virtual int Attack(int newDange)
+        public virtual int Attack()
         {
-            newDange = dange;
             return dange;
         }
         public override string GetInfo()

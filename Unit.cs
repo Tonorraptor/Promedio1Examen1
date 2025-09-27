@@ -43,6 +43,14 @@ namespace Promedio1Examen1
         {
             return price;
         }
+        public virtual int GetAttack()
+        {
+            return dange;
+        }
+        public virtual int GetHealth()
+        {
+            return health;
+        }
         public virtual bool CanAttack(Unit target)
         {
             return true;

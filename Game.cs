@@ -13,7 +13,7 @@ namespace Promedio1Examen1
         private int cash = 500;
         private int maxStructures = 3;
         private int count = 0;
-        private int Turn = 0;
+        private int turn = 0;
 
         public void Start()
         {
@@ -30,56 +30,78 @@ namespace Promedio1Examen1
             nodes.Add(new Node("Nudo 5"));
             nodes.Add(new Node("Base enemiga", isEnemyBase: true));
 
-
             int option = -1;
-            int gameOption = -1;
             while (option != 2)
             {
-                
                 Console.WriteLine("Menu Principal");
                 Console.WriteLine("1 Jugar");
                 Console.WriteLine("2 Salir");
                 option = int.Parse(Console.ReadLine());
+
                 switch (option)
                 {
                     case 1:
-                        while (gameOption != 7)
-                        {
-                            Console.WriteLine("Partida");
-                            Console.WriteLine($"Monedas: {cash}");
-                            Console.WriteLine("1 Ver Edificios");
-                            Console.WriteLine("2 Ver Unidades");
-                            Console.WriteLine("3 Construir edificio");
-                            Console.WriteLine("4 Crear unidad");
-                            Console.WriteLine("5 Ver mapa");
-                            Console.WriteLine("6 Siguiente turno");
-                            Console.WriteLine("7 Salir");
-                            gameOption = int.Parse(Console.ReadLine());
-                            switch (gameOption)
-                            {
-                                case 1:
-                                    ShowStructureStatus();
-                                    break;
-                                case 2:
-                                    ShowUnitsStatus();
-                                    break;
-                                case 3:
-                                    CreateBuilding();
-                                    break;
-                                case 4:
-                                    CreateUnit();
-                                    break;
-                                case 5:
-                                    ShowMap();
-                                    break;
-                                case 6:
-                                    EndTurn();
-                                    break;
-                            }
-                        }
+                        PlayGame();
                         break;
                     case 2:
                         Console.WriteLine("Gracias por jugar");
+                        break;
+                }
+            }
+        }
+
+        private void PlayGame()
+        {
+            int gameOption = -1;
+            while (gameOption != 8)
+            {
+                Console.WriteLine("Partida");
+                Console.WriteLine($"Monedas: {cash}");
+                Console.WriteLine("1 Ver Edificios");
+                Console.WriteLine("2 Ver Unidades");
+                Console.WriteLine("3 Construir edificio");
+                Console.WriteLine("4 Crear unidad");
+                Console.WriteLine("5 Ver mapa");
+                Console.WriteLine("6 Ver enemigos");
+                Console.WriteLine("7 Siguiente turno");
+                Console.WriteLine("8 Salir");
+
+                // Validar entrada
+                if (!int.TryParse(Console.ReadLine(), out gameOption))
+                {
+                    Console.WriteLine("Opción inválida. Introduce un número.");
+                    gameOption = -1;
+                    continue;
+                }
+
+                switch (gameOption)
+                {
+                    case 1:
+                        ShowStructureStatus();
+                        break;
+                    case 2:
+                        ShowUnitsStatus();
+                        break;
+                    case 3:
+                        CreateBuilding();
+                        break;
+                    case 4:
+                        CreateUnit();
+                        break;
+                    case 5:
+                        ShowMap();
+                        break;
+                    case 6:
+                        ShowEnemyBaseStatus();
+                        break;
+                    case 7:
+                        EndTurn();
+                        break;
+                    case 8:
+                        Console.WriteLine("Saliendo de la partida...");
+                        break;
+                    default:
+                        Console.WriteLine("Opción incorrecta");
                         break;
                 }
             }
@@ -183,10 +205,10 @@ namespace Promedio1Examen1
         {
             List<Node> availableNodes = new List<Node>();
             int option;
-            int nodeSelect=-1;
+            int nodeSelect = -1;
             foreach (var n in nodes)
             {
-                if(n.IsConquered() && n.GetMaintenanceStructures().Count > 0)
+                if (n.IsConquered() && n.GetMaintenanceStructures().Count > 0)
                 {
                     availableNodes.Add(n);
                 }
@@ -252,6 +274,7 @@ namespace Promedio1Examen1
         }
         private void EndTurn()
         {
+
             int totalIncome = 0;
 
             foreach (var node in nodes)
@@ -267,6 +290,7 @@ namespace Promedio1Examen1
                 cash += totalIncome;
                 Console.WriteLine($"Recolectaste {totalIncome} monedas este turno.");
             }
+            EnemyTurn();
         }
         private void ShowMap()
         {
@@ -281,10 +305,8 @@ namespace Promedio1Examen1
         private List<Node> GetAvailableNodes()
         {
             List<Node> availableNodes = new List<Node>();
-            // Todos los nodos conquistados
             availableNodes.AddRange(nodes.Where(n => n.IsConquered()));
 
-            // El primer nodo no conquistado que no sea la base enemiga
             Node nextNode = GetNextNode();
             if (nextNode != null && !nextNode.IsEnemyBase())
             {
@@ -304,10 +326,194 @@ namespace Promedio1Examen1
             }
             return null;
         }
+        private void ShowEnemyBaseStatus()
+        {
+            int enemyDeaths = 0;
+            int unitDeaths = 0;
+            int structureDestroyed = 0;
+            foreach (var node in nodes)
+            {
+                if (node.IsEnemyBase())
+                {
+                    Console.WriteLine($"=== {node.GetName()} ===");
+                    Console.WriteLine(node.GetUnitStatus());
+
+                    int totalPower = 1200;
+                    foreach (var unit in node.GetUnits())
+                    {
+                        Console.WriteLine($"- {unit.GetName()} (Ataque: {unit.GetAttack()}, Vida: {unit.GetHealth()})");
+                        totalPower += unit.GetAttack();
+                    }
+
+                    Console.WriteLine($"Puntaje total de la base enemiga: {totalPower}");
+                }
+            }
+
+            Console.WriteLine("El enemigo ataca...");
+
+            Node targetNode = null;
+
+            foreach (var n in nodes)
+            {
+                if (n.IsConquered() && !n.IsPlayerBase() && !n.IsEnemyBase())
+                {
+                    targetNode = n;
+                }
+            }
+
+            if (targetNode != null)
+            {
+                Node enemyBase = null;
+
+                foreach (var n in nodes)
+                {
+                    if (n.IsEnemyBase())
+                    {
+                        enemyBase = n;
+                        break;
+                    }
+                }
+                var enemyUnits = enemyBase.GetUnits();
+
+                if (enemyUnits.Count > 0)
+                {
+                    Console.WriteLine($"El enemigo envía {enemyUnits.Count} unidades a atacar {targetNode.GetName()}!");
+
+                    foreach (var enemy in enemyUnits.ToList())
+                    {
+                        if (targetNode.GetUnits().Count > 0)
+                        {
+                            var defender = targetNode.GetUnits()[0];
+                            Combat(enemy, defender, targetNode, ref enemyDeaths, ref unitDeaths);
+                        }
+                        else if (targetNode.GetStructures().Count > 0)
+                        {
+                            var structure = targetNode.GetStructures()[0];
+                            Combat(enemy, structure, targetNode, ref structureDestroyed, ref enemyDeaths);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{targetNode.GetName()} fue conquistado por el enemigo!");
+                            targetNode.Conquer();
+                            break;
+                        }
+                    }
+                    enemyUnits.Clear();
+                    Console.WriteLine("=== Resumen del Combate ===");
+                    Console.WriteLine($"Unidades enemigas destruidas: {enemyDeaths}");
+                    Console.WriteLine($"Tus unidades caídas: {unitDeaths}");
+                    Console.WriteLine($"Edificios destruidos: {structureDestroyed}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("El enemigo no encontró nodos para atacar este turno.");
+            }
+
+        }
         private int Fibonacci(int n)
         {
             if (n <= 1) return n;
             return Fibonacci(n - 1) + Fibonacci(n - 2);
+        }
+        private void EnemyTurn()
+        {
+            turn++;
+            int actions = Fibonacci(turn);
+
+            Console.WriteLine($"Turno del enemigo {turn}");
+
+            foreach (var node in nodes)
+            {
+                if (node.IsEnemyBase())
+                {
+                    for (int i = 0; i < actions; i++)
+                    {
+                        Unit newUnit;
+                        if (i % 3 == 0)
+                            newUnit = Soldier.Create("Soldado Enemigo", 10, 60, 1, 0);
+                        else if (i % 3 == 1)
+                            newUnit = Tank.Create("Tanque Enemigo", 20, 90, 2, 0);
+                        else
+                            newUnit = Helicopter.Create("Helicóptero Enemigo", 70, 110, 3, 0);
+
+                        node.AddUnit(newUnit);
+                        Console.WriteLine($"El enemigo creó {newUnit.GetName()} en {node.GetName()}");
+                    }
+                }
+            }
+
+            Console.WriteLine("Fin del turno enemigo");
+        }
+        private void Combat(Unit unitEnemy, Unit unit, Node targetNode,
+                    ref int enemyDeaths, ref int unitDeaths)
+        {
+            Console.WriteLine($"{unitEnemy.GetName()} ataca a {unit.GetName()}");
+
+            unit.TakeDamage(unitEnemy.GetAttack());
+
+            if (unit.GetHealth() <= 0)
+            {
+                Console.WriteLine($"{unit.GetName()} fue destruido.");
+                targetNode.RemoveUnit(unit);
+
+                if (unit.GetName().Contains("Enemigo"))
+                    enemyDeaths++;
+                else
+                    unitDeaths++;
+
+                return;
+            }
+
+            Console.WriteLine($"{unit.GetName()} contraataca a {unitEnemy.GetName()}");
+
+            unitEnemy.TakeDamage(unit.GetAttack());
+
+            if (unitEnemy.GetHealth() <= 0)
+            {
+                Console.WriteLine($"{unitEnemy.GetName()} fue destruido.");
+
+                if (unitEnemy.GetName().Contains("Enemigo"))
+                    enemyDeaths++;
+                else
+                    unitDeaths++;
+            }
+        }
+
+        private void Combat(Unit unitEnemy, Building structure, Node targetNode,
+          ref int structureDestroyed, ref int enemyDeaths)
+        {
+            Console.WriteLine($"{unitEnemy.GetName()} ataca a {structure.GetName()}");
+            structure.TakeDamage(unitEnemy.GetAttack());
+
+            if (structure.GetHealth() <= 0)
+            {
+                Console.WriteLine($"{structure.GetName()} fue destruida.");
+                targetNode.RemoveStructure(structure);
+                structureDestroyed++;
+                return;
+            }
+            else
+            {
+                Console.WriteLine($"{structure.GetName()} sobrevivió con {structure.GetHealth()} de vida.");
+            }
+
+            if (structure is DefenseStructure defenseStructure)
+            {
+                Console.WriteLine($"{structure.GetName()} contraataca a {unitEnemy.GetName()}");
+                unitEnemy.TakeDamage(defenseStructure.Attack());
+
+                if (unitEnemy.GetHealth() <= 0)
+                {
+                    Console.WriteLine($"{unitEnemy.GetName()} fue destruido por la defensa.");
+                    targetNode.RemoveUnit(unitEnemy);
+                    enemyDeaths++;
+                }
+                else
+                {
+                    Console.WriteLine($"{unitEnemy.GetName()} sobrevivió con {unitEnemy.GetHealth()} de vida.");
+                }
+            }
         }
     }
 }
