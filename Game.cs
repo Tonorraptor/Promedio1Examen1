@@ -48,7 +48,10 @@ namespace Promedio1Examen1
                             Console.WriteLine("1 Ver Edificios");
                             Console.WriteLine("2 Ver Unidades");
                             Console.WriteLine("3 Construir edificio");
-                            Console.WriteLine("4 Salir");
+                            Console.WriteLine("4 Crear unidad");
+                            Console.WriteLine("5 Ver mapa");
+                            Console.WriteLine("6 Siguiente turno");
+                            Console.WriteLine("7 Salir");
                             gameOption = int.Parse(Console.ReadLine());
                             switch (gameOption)
                             {
@@ -60,6 +63,15 @@ namespace Promedio1Examen1
                                     break;
                                 case 3:
                                     CreateBuilding();
+                                    break;
+                                case 4:
+                                    CreateUnit();
+                                    break;
+                                case 5:
+                                    ShowMap();
+                                    break;
+                                case 6:
+                                    EndTurn();
                                     break;
                             }
                         }
@@ -89,23 +101,27 @@ namespace Promedio1Examen1
         }
         private void CreateBuilding()
         {
+            int option;
+            int selectNode = -1;
+            List<Node> availableNodes = new List<Node>();
+
             if (count >= maxStructures)
             {
-                Console.WriteLine("No puedes construir mas edificios");
+                Console.WriteLine("No puedes construir más edificios.");
                 return;
             }
 
             Console.WriteLine("Selecciona un edificio");
-            Console.WriteLine("1 Estructura de recoleccion");
-            Console.WriteLine("2 Estructura de mantenimiento");
-            Console.WriteLine("3 Estructura de defensa");
-            int option;
+            Console.WriteLine("1. Estructura de recolección");
+            Console.WriteLine("2. Estructura de mantenimiento");
+            Console.WriteLine("3. Estructura de defensa");
             option = int.Parse(Console.ReadLine());
+
             Building newBuilding = null;
             switch (option)
             {
                 case 1:
-                    newBuilding = RecollectionStructure.Create("Estructura de Recoleccion", 100, 600, 150);
+                    newBuilding = RecollectionStructure.Create("Estructura de Recolección", 100, 600, 150);
                     break;
                 case 2:
                     newBuilding = MaintenanceStructure.Create("Estructura de mantenimiento", 175, 1200);
@@ -115,29 +131,196 @@ namespace Promedio1Examen1
                     break;
                 default:
                     Console.WriteLine("Comando incorrecto");
-                    break;
+                    return;
             }
+
             int price = newBuilding.GetPriece();
             if (cash < price)
             {
-                Console.WriteLine("No tienes monedas suficiente");
+                Console.WriteLine($"No tienes monedas suficientes (necesitas {price}).");
                 return;
             }
-            
-            
-            cash -= price;
 
-            nodes[0].AddStructure(newBuilding);
+            Node lastConquered = GetNextAvailableNode();
+
+
+            foreach (var n in nodes)
+            {
+                if (n.IsConquered())
+                {
+                    availableNodes.Add(n);
+                }
+            }
+
+            int indexOfLast = nodes.IndexOf(lastConquered);
+            if (indexOfLast + 1 < nodes.Count)
+            {
+                Node nextNode = nodes[indexOfLast + 1];
+                if (!nextNode.IsEnemyBase())
+                {
+                    availableNodes.Add(nextNode);
+                }
+            }
+
+            Console.WriteLine("Selecciona el nodo donde quieres construir:");
+            for (int i = 0; i < availableNodes.Count; i++)
+            {
+                Console.WriteLine($"{i}. {availableNodes[i].GetName()}");
+            }
+
+            selectNode = int.Parse(Console.ReadLine());
+            if (selectNode < 0 || selectNode >= availableNodes.Count)
+            {
+                Console.WriteLine("Selección inválida.");
+                return;
+            }
+
+            Node targetNode = GetNextSequentialNode();
+            if (targetNode == null)
+            {
+                Console.WriteLine("No hay más nudos disponibles para construir.");
+                return;
+            }
+
+            cash -= price;
+            targetNode.AddStructure(newBuilding);
             count++;
-            Console.WriteLine($"- {newBuilding.GetPriece()}");
+
+            Console.WriteLine($"- {price} monedas gastadas.");
+            Console.WriteLine($"{newBuilding.GetName()} fue creado en {targetNode.GetName()}");
 
             if (newBuilding is MaintenanceStructure)
             {
                 maxStructures += 3;
-                Console.WriteLine("Se aumento la capacidad maxima de construccion");
+                Console.WriteLine("Se aumentó la capacidad máxima de construcción.");
+            }
+        }
+        private void CreateUnit()
+        {
+            List<Node> availableNodes = new List<Node>();
+            int option;
+            int nodeSelect=-1;
+            foreach (var n in nodes)
+            {
+                if(n.IsConquered() && n.GetMaintenanceStructures().Count > 0)
+                {
+                    availableNodes.Add(n);
+                }
             }
 
-            Console.WriteLine($"{newBuilding.GetName()} fue creado");
+            if (availableNodes.Count == 0)
+            {
+                Console.WriteLine("No tienes estructuras de mantenimiento para crear unidades.");
+                return;
+            }
+
+            Console.WriteLine("Seleccione estructura de mantenimiento");
+            for (int i = 0; i < availableNodes.Count; i++)
+            {
+                var node = availableNodes[i];
+                var maints = node.GetMaintenanceStructures();
+                Console.WriteLine($"{i}. {node.GetName()} ({maints.Count} mantenimiento)");
+            }
+
+            nodeSelect = int.Parse(Console.ReadLine());
+            if (nodeSelect < 0 || nodeSelect >= availableNodes.Count)
+            {
+                Console.WriteLine("Selección inválida.");
+                return;
+            }
+
+            Node targetNode = availableNodes[nodeSelect];
+
+            Console.WriteLine("Crear Unidad");
+            Console.WriteLine("1. Soldado");
+            Console.WriteLine("2. Tanque");
+            Console.WriteLine("3. Helicóptero");
+            option = int.Parse(Console.ReadLine());
+
+            Unit newUnit = null;
+            switch (option)
+            {
+                case 1:
+                    newUnit = Soldier.Create("Soldado", 13, 70, 1, 80);
+                    break;
+                case 2:
+                    newUnit = Tank.Create("Tanque", 24, 100, 2, 105);
+                    break;
+                case 3:
+                    newUnit = Helicopter.Create("Helicóptero", 75, 120, 3, 295);
+                    break;
+                default:
+                    Console.WriteLine("Opción inválida.");
+                    return;
+            }
+
+            int price = newUnit.GetPrice();
+            if (cash < price)
+            {
+                Console.WriteLine($"Dinero insuficiente. Necesitas {price}.");
+                return;
+            }
+
+            if(!targetNode.IsConquered())
+    {
+                targetNode.Conquer();
+                Console.WriteLine($"{targetNode.GetName()} ha sido conquistado al construir.");
+            }
+
+            cash -= price;
+            targetNode.AddUnit(newUnit);
+            Console.WriteLine($"- {newUnit.GetPrice()}");
+            Console.WriteLine($"{newUnit.GetName()} creado en {targetNode.GetName()}");
+        }
+        private void EndTurn()
+        {
+            int totalIncome = 0;
+
+            foreach (var node in nodes)
+            {
+                foreach (var structure in node.GetStructures())
+                {
+                    totalIncome += structure.CollectIncome();
+                }
+            }
+
+            if (totalIncome > 0)
+            {
+                cash += totalIncome;
+                Console.WriteLine($"Recolectaste {totalIncome} monedas este turno.");
+            }
+        }
+        private void ShowMap()
+        {
+            Console.WriteLine("MAPA");
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                var node = nodes[i];
+                string conquered = node.IsConquered() ? "[✔]" : "[ ]";
+                Console.WriteLine($"{i}. {node.GetName()} {conquered}");
+            }
+        }
+        private Node GetNextAvailableNode()
+        {
+            for (int i = 0; i < nodes.Count - 1; i++)
+            {
+                if (nodes[i].IsConquered() && !nodes[i + 1].IsConquered())
+                {
+                    return nodes[i + 1];
+                }
+            }
+            return null;
+        }
+        private Node GetNextSequentialNode()
+        {
+            foreach (var node in nodes)
+            {
+                if (!node.IsConquered() && !node.IsEnemyBase())
+                {
+                    return node; // El primer nodo que aún no está conquistado
+                }
+            }
+            return null;
         }
     }
 }

@@ -29,5 +29,9 @@ namespace Promedio1Examen1
         {
             return new RecollectionStructure(name, price, health, income);
         }
+        public override int CollectIncome()
+        {
+            return income;
+        }
     }
 }

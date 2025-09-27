@@ -23,6 +23,11 @@ namespace Promedio1Examen1
             this.isEnemyBase = isEnemyBase;
             units = new List<Unit>();
             structures = new List<Building>();
+
+            if (isPlayerBase)
+            {
+                isConquered = true;
+            }
         }
         public void AddUnit(Unit unit)
         {
@@ -43,7 +48,7 @@ namespace Promedio1Examen1
             {
                 return $"{name} - Estructuras: {structures.Count}";
             }
-            return $"{name} | Estructuras: ???";
+            return $"{name} | Estructuras: {structures.Count}";
         }
         public string GetUnitStatus()
         {
@@ -51,7 +56,7 @@ namespace Promedio1Examen1
             {
                 return $"{name} - Unidades: {units.Count}";
             }
-            return $"{name} - Unidades: ???";
+            return $"{name} - Unidades: {units.Count}";
         }
         public bool IsPlayerBase()
         {
@@ -68,6 +73,18 @@ namespace Promedio1Examen1
         public bool IsConquered()
         {
             return isConquered;
+        }
+        public List<MaintenanceStructure> GetMaintenanceStructures()
+        {
+            return structures.OfType<MaintenanceStructure>().ToList();
+        }
+        public string GetName()
+        {
+            return $"{name}";
+        }
+        public List<Building> GetStructures()
+        {
+            return structures;
         }
     }
 }

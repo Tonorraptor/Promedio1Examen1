@@ -12,7 +12,7 @@ namespace Promedio1Examen1
         protected int dange { get; }
         protected int health { get; set; }
         protected int speed { get; }
-        protected int price { get;  }
+        protected int price { get; }
 
         protected Unit(string name, int dange, int health, int speed, int price)
         {
@@ -34,6 +34,22 @@ namespace Promedio1Examen1
         public virtual bool IsAlive()
         {
             return health > 0;
+        }
+        public virtual string GetName()
+        {
+            return $"{name}";
+        }
+        public virtual int GetPrice()
+        {
+            return price;
+        }
+        public virtual bool CanAttack(Unit target)
+        {
+            return true;
+        }
+        public virtual bool CanAttack(Building target)
+        {
+            return true;
         }
     }
 }

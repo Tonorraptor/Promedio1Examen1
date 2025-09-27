@@ -35,5 +35,9 @@ namespace Promedio1Examen1
         {
             return price;
         }
+        public virtual int CollectIncome()
+        {
+            return 0;
+        }
     }
 }

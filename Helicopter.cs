@@ -16,5 +16,9 @@ namespace Promedio1Examen1
         {
             return new Helicopter(name, dange, health, speed, priece);
         }
+        public override bool CanAttack(Unit target)
+        {
+            return target is Tank;
+        }
     }
 }
