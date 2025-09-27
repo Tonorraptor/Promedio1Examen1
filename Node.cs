@@ -23,11 +23,6 @@ namespace Promedio1Examen1
             this.isEnemyBase = isEnemyBase;
             units = new List<Unit>();
             structures = new List<Building>();
-
-            if (isPlayerBase)
-            {
-                isConquered = true;
-            }
         }
         public void AddUnit(Unit unit)
         {

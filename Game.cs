@@ -13,6 +13,7 @@ namespace Promedio1Examen1
         private int cash = 500;
         private int maxStructures = 3;
         private int count = 0;
+        private int Turn = 0;
 
         public void Start()
         {
@@ -21,6 +22,7 @@ namespace Promedio1Examen1
             lists.AddEnemys();
 
             nodes.Add(new Node("Tu Base", isPlayerBase: true));
+            nodes[0].Conquer();
             nodes.Add(new Node("Nudo 1"));
             nodes.Add(new Node("Nudo 2"));
             nodes.Add(new Node("Nudo 3"));
@@ -141,26 +143,8 @@ namespace Promedio1Examen1
                 return;
             }
 
-            Node lastConquered = GetNextAvailableNode();
+            availableNodes = GetAvailableNodes();
 
-
-            foreach (var n in nodes)
-            {
-                if (n.IsConquered())
-                {
-                    availableNodes.Add(n);
-                }
-            }
-
-            int indexOfLast = nodes.IndexOf(lastConquered);
-            if (indexOfLast + 1 < nodes.Count)
-            {
-                Node nextNode = nodes[indexOfLast + 1];
-                if (!nextNode.IsEnemyBase())
-                {
-                    availableNodes.Add(nextNode);
-                }
-            }
 
             Console.WriteLine("Selecciona el nodo donde quieres construir:");
             for (int i = 0; i < availableNodes.Count; i++)
@@ -175,13 +159,13 @@ namespace Promedio1Examen1
                 return;
             }
 
-            Node targetNode = GetNextSequentialNode();
-            if (targetNode == null)
-            {
-                Console.WriteLine("No hay más nudos disponibles para construir.");
-                return;
-            }
+            Node targetNode = availableNodes[selectNode];
 
+            if (!targetNode.IsConquered())
+            {
+                targetNode.Conquer();
+                Console.WriteLine($"{targetNode.GetName()} ha sido conquistado.");
+            }
             cash -= price;
             targetNode.AddStructure(newBuilding);
             count++;
@@ -261,12 +245,6 @@ namespace Promedio1Examen1
                 return;
             }
 
-            if(!targetNode.IsConquered())
-    {
-                targetNode.Conquer();
-                Console.WriteLine($"{targetNode.GetName()} ha sido conquistado al construir.");
-            }
-
             cash -= price;
             targetNode.AddUnit(newUnit);
             Console.WriteLine($"- {newUnit.GetPrice()}");
@@ -300,7 +278,22 @@ namespace Promedio1Examen1
                 Console.WriteLine($"{i}. {node.GetName()} {conquered}");
             }
         }
-        private Node GetNextAvailableNode()
+        private List<Node> GetAvailableNodes()
+        {
+            List<Node> availableNodes = new List<Node>();
+            // Todos los nodos conquistados
+            availableNodes.AddRange(nodes.Where(n => n.IsConquered()));
+
+            // El primer nodo no conquistado que no sea la base enemiga
+            Node nextNode = GetNextNode();
+            if (nextNode != null && !nextNode.IsEnemyBase())
+            {
+                availableNodes.Add(nextNode);
+            }
+
+            return availableNodes;
+        }
+        private Node GetNextNode()
         {
             for (int i = 0; i < nodes.Count - 1; i++)
             {
@@ -311,16 +304,10 @@ namespace Promedio1Examen1
             }
             return null;
         }
-        private Node GetNextSequentialNode()
+        private int Fibonacci(int n)
         {
-            foreach (var node in nodes)
-            {
-                if (!node.IsConquered() && !node.IsEnemyBase())
-                {
-                    return node; // El primer nodo que aún no está conquistado
-                }
-            }
-            return null;
+            if (n <= 1) return n;
+            return Fibonacci(n - 1) + Fibonacci(n - 2);
         }
     }
 }
