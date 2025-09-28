@@ -18,7 +18,7 @@ namespace Promedio1Examen1
         }
         public override bool CanAttack(Unit target)
         {
-            return target is Helicopter;
+            return target is Soldier;
         }
     }
 }

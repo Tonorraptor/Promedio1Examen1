@@ -25,6 +25,12 @@ namespace Promedio1Examen1
             units = new List<Unit>();
             structures = new List<Building>();
         }
+        public void LoseControl()
+        {
+            isConquered = false;
+            structures.Clear();
+            units.Clear();
+        }
         public void AddUnit(Unit unit)
         {
             units.Add(unit);

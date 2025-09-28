@@ -274,7 +274,6 @@ namespace Promedio1Examen1
         }
         private void EndTurn()
         {
-
             int totalIncome = 0;
 
             foreach (var node in nodes)
@@ -290,6 +289,8 @@ namespace Promedio1Examen1
                 cash += totalIncome;
                 Console.WriteLine($"Recolectaste {totalIncome} monedas este turno.");
             }
+            EnemyAttack();
+
             EnemyTurn();
         }
         private void ShowMap()
@@ -328,9 +329,6 @@ namespace Promedio1Examen1
         }
         private void ShowEnemyBaseStatus()
         {
-            int enemyDeaths = 0;
-            int unitDeaths = 0;
-            int structureDestroyed = 0;
             foreach (var node in nodes)
             {
                 if (node.IsEnemyBase())
@@ -348,6 +346,12 @@ namespace Promedio1Examen1
                     Console.WriteLine($"Puntaje total de la base enemiga: {totalPower}");
                 }
             }
+        }
+        private void EnemyAttack()
+        {
+            int enemyDeaths = 0;
+            int unitDeaths = 0;
+            int structureDestroyed = 0;
 
             Console.WriteLine("El enemigo ataca...");
 
@@ -358,22 +362,14 @@ namespace Promedio1Examen1
                 if (n.IsConquered() && !n.IsPlayerBase() && !n.IsEnemyBase())
                 {
                     targetNode = n;
+                    break;
                 }
             }
 
             if (targetNode != null)
             {
-                Node enemyBase = null;
-
-                foreach (var n in nodes)
-                {
-                    if (n.IsEnemyBase())
-                    {
-                        enemyBase = n;
-                        break;
-                    }
-                }
-                var enemyUnits = enemyBase.GetUnits();
+                Node enemyBase = nodes.FirstOrDefault(n => n.IsEnemyBase());
+                var enemyUnits = enemyBase.GetUnits().ToList();
 
                 if (enemyUnits.Count > 0)
                 {
@@ -381,24 +377,28 @@ namespace Promedio1Examen1
 
                     foreach (var enemy in enemyUnits.ToList())
                     {
+                        bool enemyDestroyed = false;
                         if (targetNode.GetUnits().Count > 0)
                         {
-                            var defender = targetNode.GetUnits()[0];
-                            Combat(enemy, defender, targetNode, ref enemyDeaths, ref unitDeaths);
+                            var unit = targetNode.GetUnits()[0];
+                            enemyDestroyed = Combat(enemy, unit, targetNode, ref enemyDeaths, ref unitDeaths);
                         }
                         else if (targetNode.GetStructures().Count > 0)
                         {
                             var structure = targetNode.GetStructures()[0];
-                            Combat(enemy, structure, targetNode, ref structureDestroyed, ref enemyDeaths);
+                            enemyDestroyed = Combat(enemy, structure, targetNode, ref structureDestroyed, ref enemyDeaths);
                         }
                         else
                         {
                             Console.WriteLine($"{targetNode.GetName()} fue conquistado por el enemigo!");
-                            targetNode.Conquer();
+                            targetNode.LoseControl();
                             break;
                         }
+                        if (enemyDestroyed)
+                        {
+                            enemyBase.RemoveUnit(enemy);
+                        }
                     }
-                    enemyUnits.Clear();
                     Console.WriteLine("=== Resumen del Combate ===");
                     Console.WriteLine($"Unidades enemigas destruidas: {enemyDeaths}");
                     Console.WriteLine($"Tus unidades caídas: {unitDeaths}");
@@ -409,8 +409,8 @@ namespace Promedio1Examen1
             {
                 Console.WriteLine("El enemigo no encontró nodos para atacar este turno.");
             }
-
         }
+
         private int Fibonacci(int n)
         {
             if (n <= 1) return n;
@@ -445,7 +445,7 @@ namespace Promedio1Examen1
 
             Console.WriteLine("Fin del turno enemigo");
         }
-        private void Combat(Unit unitEnemy, Unit unit, Node targetNode,
+        private bool Combat(Unit unitEnemy, Unit unit, Node targetNode,
                     ref int enemyDeaths, ref int unitDeaths)
         {
             Console.WriteLine($"{unitEnemy.GetName()} ataca a {unit.GetName()}");
@@ -456,13 +456,8 @@ namespace Promedio1Examen1
             {
                 Console.WriteLine($"{unit.GetName()} fue destruido.");
                 targetNode.RemoveUnit(unit);
-
-                if (unit.GetName().Contains("Enemigo"))
-                    enemyDeaths++;
-                else
-                    unitDeaths++;
-
-                return;
+                unitDeaths++;
+                return false;
             }
 
             Console.WriteLine($"{unit.GetName()} contraataca a {unitEnemy.GetName()}");
@@ -472,15 +467,13 @@ namespace Promedio1Examen1
             if (unitEnemy.GetHealth() <= 0)
             {
                 Console.WriteLine($"{unitEnemy.GetName()} fue destruido.");
-
-                if (unitEnemy.GetName().Contains("Enemigo"))
-                    enemyDeaths++;
-                else
-                    unitDeaths++;
+                unitDeaths++;
+                return true;
             }
+            return false;
         }
 
-        private void Combat(Unit unitEnemy, Building structure, Node targetNode,
+        private bool Combat(Unit unitEnemy, Building structure, Node targetNode,
           ref int structureDestroyed, ref int enemyDeaths)
         {
             Console.WriteLine($"{unitEnemy.GetName()} ataca a {structure.GetName()}");
@@ -491,7 +484,7 @@ namespace Promedio1Examen1
                 Console.WriteLine($"{structure.GetName()} fue destruida.");
                 targetNode.RemoveStructure(structure);
                 structureDestroyed++;
-                return;
+                return  false;
             }
             else
             {
@@ -506,14 +499,15 @@ namespace Promedio1Examen1
                 if (unitEnemy.GetHealth() <= 0)
                 {
                     Console.WriteLine($"{unitEnemy.GetName()} fue destruido por la defensa.");
-                    targetNode.RemoveUnit(unitEnemy);
                     enemyDeaths++;
+                    return true;
                 }
                 else
                 {
                     Console.WriteLine($"{unitEnemy.GetName()} sobrevivió con {unitEnemy.GetHealth()} de vida.");
                 }
             }
+            return false;
         }
     }
 }
